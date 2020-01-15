@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title> Extension của Tín đẹp trai</title>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="bootstrap4/css/bootstrap.min.css">
+</head>
+<body>
+
+    <header class="bg-dark">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <nav class="navbar navbar-expand-lg navbar-dark bg-dark justify-content-between" >
+                        <a class="navbar-brand" href="javascript:void(0)">Logo</a>
+                        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navb">
+                          <span class="navbar-toggler-icon"></span>
+                        </button>
+                      
+                        <div class="collapse navbar-collapse flex-grow-0" id="navb">
+                          <ul class="navbar-nav mr-auto">
+                            <li class="nav-item">
+                              <a class="nav-link" href="showAdd">Add new</a>
+                            </li>
+                            <li class="nav-item">
+                              <a class="nav-link" href="javascript:void(0)">View</a>
+                            </li>
+                          </ul>
+                        
+                        </div>
+                      </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div class="container mt-5" id="view">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card ">
+                        <div class="card-header bg-primary text-white ">
+                            Danh sách group
+                        </div>
+                        <div class="card-body">
+                            <div id="accordion">
+                                
+                              </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lưu -->
+        <div class="container mt-5" id="addNew">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card ">
+                        <div class="card-header bg-success text-white ">
+                            Thêm mới group
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="">Nhập tên chiến dịch</label>
+                                <input type="text" class="form-control" id="campaignName">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="">Danh sách link</label>
+                                <ul class="list-group">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center"> Thảo Xinh Spa - Page 3k(2)<span class="">                <span class="badge-primary badge badge-pill view" data-name="Thảo Xinh Spa - Page 3k" data-link="https://business.facebook.com/adsmanager/manage/campaigns?act=384921492176957&amp;business_id=728838647577217
+                                        https://business.facebook.com/adsmanager/manage/campaigns?act=1030055804012841&amp;business_id=521807511742730">                    <i class="fa fa-eye" aria-hidden="true"></i>                </span>                <span class="badge-primary badge badge-pill edit" data-name="Thảo Xinh Spa - Page 3k" data-link="https://business.facebook.com/adsmanager/manage/campaigns?act=384921492176957&amp;business_id=728838647577217
+                                        https://business.facebook.com/adsmanager/manage/campaigns?act=1030055804012841&amp;business_id=521807511742730">                  <i class="fa fa-pencil" aria-hidden="true"></i>                </span>                <span class="badge-danger badge badge-pill delete" data-name="Thảo Xinh Spa - Page 3k"><i class="fa fa-times" aria-hidden="true"></i>                  </span>              </span>          </li>
+                                   
+                                </ul>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="">List tab đang mở <button class="btn btn-primary" id="refresh">Làm mới</button> </label>
+                                <ul class="list-group" id="listTabMoSan">
+
+                                </ul>
+                            </div>
+                            <button class="btn btn-danger">Quay lại</button>
+                            <button class="btn btn-success">Lưu</button>
+
+                        </div>
+                      </div>
+                   
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="jquery.js"></script>
+    <script src="bootstrap4/js/bootstrap.js"></script>
+    <script src="background.js"></script>
+    <script src="backgroundhtml.js"></script>
+   
+</body>
+</html>
+

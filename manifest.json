@@ -1,0 +1,46 @@
+{
+    "background": {
+        "page": "background.html"
+    },
+    "browser_action": {
+        "default_icon": "icon/facebookpng.png",
+        "default_popup": "popup.html",
+        "default_title": "Extension của A Tín đẹp trai"
+    }, 
+    "content_scripts":[{
+        "matches":["http://*/*","https://*/*"],
+            "js":["jquery.js"]
+    }],
+    "description": "Extension báo cáo",
+    "icons": {
+        "16": "icon/facebook16.ico",
+        "48": "icon/facebookpng.png",
+        "128": "icon/facebookpng.png"
+    },
+    "externally_connectable": {
+        "matches": [
+            "*://*.facebook.com/*",
+            "*://192.241.233.33/*"
+        ]
+    },
+    
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "manifest_version": 2,
+    "web_accessible_resources": ["icon/facebookpng.png","icon/facebook16.ico"],
+    "name": "Report",
+    "permissions": [
+        "tabs",
+        "webRequest",
+        "webRequestBlocking",
+        "contextMenus",
+        "storage",
+        "cookies",
+        "http://*/*",
+        "https://*/*",
+        "*://m.facebook.com/*",
+        "activeTab",
+        "<all_urls>"
+    ],
+    "version": "1.0"
+   
+}
