@@ -107,15 +107,6 @@ $(document).ready(function(){
             console.log(value);
             htmlList = htmlList + ' <li class="list-group-item d-flex justify-content-between align-items-center">\
             '+key+"("+value.length+')<span class="">\
-                <span class="badge-primary badge badge-pill view" data-name="'+key+'" data-link="'+value.join("\n")+'">\
-                    <i class="fa fa-eye" aria-hidden="true"></i>\
-                </span>\
-                <span class="badge-primary badge badge-pill edit" data-name="'+key+'" data-link="'+value.join("\n")+'">\
-                  <i class="fa fa-pencil" aria-hidden="true"></i>\
-                </span>\
-                <span class="badge-danger badge badge-pill delete" data-name="'+key+'"><i class="fa fa-times" aria-hidden="true"></i>\
-                  </span>\
-              </span>\
           </li>';
         }
         $('#listDanhSach').html(htmlList)

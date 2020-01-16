@@ -1,6 +1,7 @@
 $(document).ready(function(){
     getListView()
     $('#refresh').on("click",function(){
+        console.log("refresh")
         getAllLink();
     })
 
@@ -12,7 +13,11 @@ $(document).ready(function(){
     })
 
     $(document).on("click","#saveNew",function(){saveList()});
-
+    $('#addNewGroup').click(function(){
+        $('#campaignName').data("oldName","").val("");
+        changeDivView("addNew")
+    })
+    $('#back').click(function(){changeDivView("view")})
 /**
  * Dashboard
  */
@@ -34,6 +39,34 @@ $(document).on('click',".view",function(){
     }
     
 })
+$(document).on('click','.deleteGroup',function(){
+    var r = confirm("Bạn muốn xóa group này?");
+    if (r == true) {
+        var keyName = $(this).data("name")
+        listKey = localStorage.getItem("listKey");
+        listKey = JSON.parse(listKey)
+        delete listKey[keyName]
+        localStorage.setItem("listKey",JSON.stringify(listKey))
+        getListView()
+    }
+})
+$(document).on('click','.editGroup',function(){
+    $('#listGroupCurrent').html("");
+
+    var keyName = $(this).data("name")
+    $('#campaignName').val(keyName)
+    $('#campaignName').data("oldName",keyName);
+    listKey = localStorage.getItem("listKey");
+    listKey = JSON.parse(listKey)
+    listKey = listKey[keyName]
+
+    for(i =0; i < listKey.length;i++){
+        clickAddSpan(listKey[i]);
+    }
+
+    changeDivView("addNew")
+})
+
 
 function getListView(){
     listKey = localStorage.getItem("listKey");
@@ -50,10 +83,14 @@ function getListView(){
         console.log(key,value)
         htmlList = htmlList + '<div class="card">\
                 <div class="card-header" id="heading'+stt+'">\
-                <h5 class="mb-0">\
+                <h5 class="mb-0 d-flex justify-content-between align-items-center">\
                     <button class="btn btn-link" data-toggle="collapse" data-target="#collapse'+stt+'" aria-expanded="false" aria-controls="collapse'+stt+'">\
                     '+key+'\
                     </button>\
+                    <div>\
+                    <span class="badge-primary badge badge-pill editGroup" data-name="'+key+'"> <i class="fa fa-pencil" aria-hidden="true"></i>                </span>\
+                    <span class="badge-danger badge badge-pill deleteGroup" data-name="'+key+'"><i class="fa fa-times" aria-hidden="true"></i>                  </span>\
+                    </div>\
                 </h5>\
                 </div>\
                 <div id="collapse'+stt+'" class="collapse" aria-labelledby="heading'+stt+'" data-parent="#accordion">\
@@ -61,8 +98,8 @@ function getListView(){
                     <div class="row">\
                         <div class="col-8">\
                             <div class="card ">\
-                            <div class="card-header bg-success text-white ">\
-                                Danh sách link\
+                            <div class="card-header bg-success text-white d-flex ">\
+                                <span>Danh sách link</span>\
                             </div>\
                             <div class="card-body">'
                         +value.join("<hr>")+'</div></div></div>\
@@ -72,7 +109,7 @@ function getListView(){
                                 <div class="card"><div class="card-header text-white bg-success">Xem theo ngày</div><div class="card-body">\
                                     <div class="form-group"><label>Từ ngày</label><input class="form-control datefrom" type="date" ></div><div></div>\
                                     <div class="form-group"><label>Đến ngày</label><input class="form-control dateend" type="date" ></div><div></div>\
-                                    <button class="btn btn-primary view" data-name="'+key+'">Xem</button>\
+                                    <button class="btn btn-primary view btnView'+stt+'" data-stt = "'+stt+'" data-name="'+key+'">Xem</button>\
                                 </div></div>\
                                 </div>\
                             </div>\
@@ -95,15 +132,17 @@ function getAllLink(){
 function addList(listDanhSach){
     li = ""
     for(const [key,value] of Object.entries(listDanhSach)){
-
         if(value.url.includes("https://business.facebook.com") && $.urlParam("business_id",value.url) && $.urlParam("act",value.url)){
             li = li + '<li class="list-group-item d-flex justify-content-between align-items-center">\
                 <span>'+value.name+'</span>\
-                <span class="badge-primary badge badge-pill view addLink" data-link="'+value.url+'" >\
+                <span class="badge-primary badge badge-pill addLink" data-link="'+value.url+'" >\
                     <i class="fa fa-plus" aria-hidden="true"></i>\
                 </span>\
             </li>';
         }
+    }
+    if(li == ""){
+        li = "<li>Bạn chưa mở tab nào của facebook business</li>"
     }
     $('#listTabMoSan').html(li)
 }
@@ -114,27 +153,38 @@ chrome.runtime.onMessage.addListener(function(request , sender, sendResponse) {
     }
 });
 
+function changeDivView(idDiv){
+    $('#addNew').addClass('d-none');
+    $('#view').addClass('d-none');
+    $('#'+idDiv).removeClass('d-none');
+}
+
 /**
  * Add
  */
 function saveList(){
     let nameCamp = $('#campaignName').val();
+    listKey = localStorage.getItem("listKey");
+    if(listKey == null){
+        listKey = {}
+    }else{
+        listKey = JSON.parse(listKey)
+    }
+    if($("#campaignName").data("oldName") !== ""){
+        delete listKey[$("#campaignName").data("oldName")];
+    }
     if(nameCamp){
 
         let listLink = [];
         $('#listGroupCurrent li').each(function(index){
             listLink.push($(this).data("link"))
         });
-        listKey = localStorage.getItem("listKey");
-        // console.log(listKey);
-        if(listKey == null){
-            listKey = {}
-        }else{
-            listKey = JSON.parse(listKey)
-        }
+        
         listKey[nameCamp] = listLink;
 
         localStorage.setItem("listKey",JSON.stringify(listKey));
+        getListView();
+        changeDivView("view");
     }else{
         alert("Tên không được bỏ trống")
     }
@@ -167,3 +217,5 @@ function clickAddSpan(link){
         return decodeURI(results[1]) || 0;
     }
 })
+
+

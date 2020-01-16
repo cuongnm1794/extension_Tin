@@ -1,11 +1,35 @@
-chrome.runtime.onMessage.addListener(function(request , sender, sendResponse) {
+chrome.runtime.onMessage.addListener(async function(request , sender, sendResponse) {
     if(request.method == "View"){
         showResult(request)
     }else if(request.method == "openBackground"){
         chrome.tabs.create({url: chrome.extension.getURL('background.html')});
+    }else if(request.method == "getUrlTab"){
+        let result = await getAllTab();
+
+        chrome.runtime.sendMessage({
+            method:"returnListDanhsach",
+            list:result
+        });
     }
 })
 
+async function getAllTab(){
+    let returnabc = new Promise( async function(resolve,reject){
+        chrome.windows.getAll({populate:true},function(windows){
+            let object = {};
+            windows.forEach(function(window){
+                window.tabs.forEach(function(tab){
+                    object[tab["id"]] = {};
+                    object[tab["id"]]["name"] = tab['title']
+                    object[tab["id"]]["url"] = tab['url']
+                });
+              });
+            resolve(object)
+        });
+    })
+    let result = await returnabc;
+    return result;
+}
 
 async function showResult(request){
     let listUrl = localStorage.getItem("listKey");
@@ -83,6 +107,7 @@ async function runView(listLink,name,from,end){
 
 async function getInfoLink(link,name){
     console.log("backgroundNew.getInfoLink... name: "+name)
+    console.log("backgroundNew.getInfoLink... link: "+link)
     let promise = new Promise((resolve,reject)=>{
         $.get(link)
         .done( function(data){
