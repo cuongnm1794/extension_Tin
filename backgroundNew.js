@@ -7,42 +7,82 @@ chrome.runtime.onMessage.addListener(function(request , sender, sendResponse) {
 })
 
 
-function showResult(request){
+async function showResult(request){
     let listUrl = localStorage.getItem("listKey");
     listUrl = listKey[request.name]
     if(listUrl){
-        runView(listUrl,request.name,request.from,request.end)
+        let result = await runView(listUrl,request.name,request.from,request.end)
+        result = JSON.stringify(result);
+        chrome.tabs.create({url:listUrl[0]}, function(tabs){
+            idTab = tabs.id
+            chrome.tabs.executeScript(idTab, {file: "jquery.js"}, function(){
+                chrome.tabs.executeScript(idTab, { code: 'console.log("hello"); var listDanhSach = '+result+' '}, function(){
+                    chrome.tabs.executeScript(idTab, {file: "addTable.js"}, function(){
+                    });
+                });
+            });
+        })
     }
+
+
 }
 
 async function runView(listLink,name,from,end){
-    
+    console.log("backgroundnew.runView...");
+    var date = new Date(end);
+    date.setDate(date.getDate() + 1);
+    endNew = formatDate(date);
     nameEncode = encodeURIComponent('"'+name+'"');
-    console.log(name)
-    console.log(listLink[0])
-    console.log(from)
-    console.log(end)
-
-    for(i =0; i< listLink.length;i++){
-        listLink[i] = listLink[i] + "&date="+from+"_"+end+"&filter_set=SEARCH_BY_CAMPAIGN_GROUP_NAME-STRING%1ECONTAIN%1E"+nameEncode;
-
-        act = $.urlParam("act",listLink[i]);
-        __business_id = $.urlParam("__business_id",listLink[i]);
-        console.log(listLink[i])
+    listReturn = {};
+    for(j =0; j< listLink.length;j++){
+        listLink[j] = listLink[j] + "&date="+from+"_"+endNew+"&filter_set=SEARCH_BY_CAMPAIGN_GROUP_NAME-STRING%1ECONTAIN%1E"+nameEncode;
+        act = $.urlParam("act",listLink[j]);
+        __business_id = $.urlParam("__business_id",listLink[j]);
         try {
-            listName = await getInfoLink(listLink[i],name);
+            listName = await getInfoLink(listLink[j],name);
+          
             getDataSubDetail = await getDataSub(act,listName.accessToken,__business_id,listName.sessionId,listName.stringListId,from,end);
+            getDataSubDetail = getDataSubDetail.data
+            for(i =0; i < getDataSubDetail.length;i++){
+                value = getDataSubDetail[i];
+                nameCamp = listName.listName[getDataSubDetail[i].campaign_id].name;
+                if(typeof listReturn[nameCamp] === "undefined"){
+                    listReturn[nameCamp] = {};
+                    listReturn[nameCamp]["comment"] = 0;
+                    listReturn[nameCamp]["spend"] =0;
+                    listReturn[nameCamp]["newmessage"] =0;
+                    listReturn[nameCamp]["messaging_connect"] =0;
+                    listReturn[nameCamp]["reach"] =0;
+                    listReturn[nameCamp]["results"] =0;
+                    listReturn[nameCamp]["impressions"] =0;
+                    listReturn[nameCamp]["end"] ="";
+                }
+                
+                listReturn[nameCamp]["spend"] = parseInt(listReturn[nameCamp]["spend"]) + parseInt(value['spend']);
+                listReturn[nameCamp]["impressions"] = parseInt(listReturn[nameCamp]["impressions"]) + parseInt(value['impressions']);
+                listReturn[nameCamp]["reach"] = parseInt(listReturn[nameCamp]["reach"]) + parseInt(value['reach']);
+                listReturn[nameCamp]['end'] = (typeof end !=="undefined")?end:0;
+                if(typeof value['results'][0]['values'] != "undefined") listReturn[nameCamp]["results"] = parseInt(listReturn[nameCamp]["results"]) + parseInt(value['results'][0]['values'][0]['value'])
 
-            console.log(getDataSubDetail.data)
+                if(typeof value['actions'] !== "undefined" ){
+                    for(x =0;x<value['actions'].length;x++){
+                        if(value["actions"][x]["action_type"] == "comment") listReturn[nameCamp]["comment"] = parseInt(listReturn[nameCamp]["comment"]) +  parseInt(value["actions"][x]['value'])
+                        if(value["actions"][x]["action_type"] == "onsite_conversion.messaging_first_reply") listReturn[nameCamp]["newmessage"] = parseInt(listReturn[nameCamp]["newmessage"]) +  parseInt(value["actions"][x]['value'])
+                        if(value["actions"][x]["action_type"] == "onsite_conversion.messaging_block") listReturn[nameCamp]["messaging_connect"] = parseInt(listReturn[nameCamp]["messaging_connect"]) +  parseInt(value["actions"][x]['value'])
+                    }
+                }
+            }    
         } catch (error) {
-            console.log(error)
+            console.log("runView.error",error)
             
         }
     }
+    return listReturn;
 }
 
 
 async function getInfoLink(link,name){
+    console.log("backgroundNew.getInfoLink... name: "+name)
     let promise = new Promise((resolve,reject)=>{
         $.get(link)
         .done( function(data){
@@ -108,4 +148,18 @@ function GetBetween(content, start, end) {
         return r[0];
     }
     return 0;
+}
+
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2) 
+        month = '0' + month;
+    if (day.length < 2) 
+        day = '0' + day;
+
+    return [year, month, day].join('-');
 }
