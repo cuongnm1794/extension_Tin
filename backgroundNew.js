@@ -10,6 +10,18 @@ chrome.runtime.onMessage.addListener(async function(request , sender, sendRespon
             method:"returnListDanhsach",
             list:result
         });
+    }else if(request.method == "changeSoLuong"){
+        console.log(request)
+        console.log(request)
+        chrome.tabs.create({url:request.link}, function(tabs){
+            idTab = tabs.id
+            chrome.tabs.executeScript(idTab, {file: "jquery.js"}, function(){
+                chrome.tabs.executeScript(idTab, { code: 'console.log("hello"); var listDanhSach = '+request.data+' '}, function(){
+                    chrome.tabs.executeScript(idTab, {file: "addTable.js"}, function(){
+                    });
+                });
+            });
+        })   
     }
 })
 
@@ -35,17 +47,42 @@ async function showResult(request){
     let listUrl = localStorage.getItem("listKey");
     listUrl = listKey[request.name]
     if(listUrl){
-        let result = await runView(listUrl,request.name,request.from,request.end)
-        result = JSON.stringify(result);
-        chrome.tabs.create({url:listUrl[0]}, function(tabs){
-            idTab = tabs.id
-            chrome.tabs.executeScript(idTab, {file: "jquery.js"}, function(){
-                chrome.tabs.executeScript(idTab, { code: 'console.log("hello"); var listDanhSach = '+result+' '}, function(){
-                    chrome.tabs.executeScript(idTab, {file: "addTable.js"}, function(){
+        try {
+            let result = await runView(listUrl,request.name,request.from,request.end)
+
+            //lưu vào localstorage
+            let objectSaveLocalStorage = {};
+            objectSaveLocalStorage["result"] = result;
+            objectSaveLocalStorage['link'] = listUrl;
+            objectSaveLocalStorage['name'] = request.name;
+            objectSaveLocalStorage['time'] = request.from+":"+request.end;
+            objectSaveLocalStorage['status'] = true;
+
+            localStorage.setItem("recentResult",JSON.stringify(objectSaveLocalStorage));
+
+            result = JSON.stringify(result);
+            chrome.runtime.sendMessage({
+                method:"unlockView",
+            });
+            chrome.tabs.create({url:listUrl[0]}, function(tabs){
+                idTab = tabs.id
+                chrome.tabs.executeScript(idTab, {file: "jquery.js"}, function(){
+                    chrome.tabs.executeScript(idTab, { code: 'console.log("hello"); var listDanhSach = '+result+' '}, function(){
+                        chrome.tabs.executeScript(idTab, {file: "addTable.js"}, function(){
+                        });
                     });
                 });
-            });
-        })
+            })    
+        } catch (error) {
+            let objectSaveLocalStorage = {};
+            objectSaveLocalStorage['status'] = false;
+            objectSaveLocalStorage['info'] = error;
+
+            localStorage.setItem("recentResult",JSON.stringify(objectSaveLocalStorage));
+
+            console.log("showResult.error",error);
+        }
+        
     }
 
 

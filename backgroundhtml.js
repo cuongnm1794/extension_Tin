@@ -21,6 +21,117 @@ $(document).ready(function(){
 /**
  * Dashboard
  */
+
+chrome.runtime.onMessage.addListener(function(request , sender, sendResponse) {
+    if(request.method == "completeView"){
+        openViewButton(request.status,request.info)
+    }
+});
+
+$('#exampleModal').on('show.bs.modal', function (event) {
+    result = localStorage.getItem("recentResult");
+    result = JSON.parse(result);
+    if(result.status == true){
+        listResult = Object.keys(result.result)
+        addListToTableModal(result)
+    }else{
+        alert(result.info)
+    }
+});
+
+function addListToTableModal(result){
+    stringTbody = "";
+    $('#date').html(result['time'].replace(":"," Đến "));
+    $('#keySearch').html(result.name)
+    listResult =result.result
+    stt = 0;
+    for(let [key,value] of Object.entries(listResult)){
+        stringTbody += '<tr>\
+            <td>'+key+'</td>\
+            <td>'+parseInt(value.spend).toLocaleString()+'<br><span class="spendAfter" data-spend="'+value.spend+'"></span></td>\
+            <td>\
+                <input type="text" class="form-control  inputCongTien" data-name="'+key+'" data-spend="'+value.spend+'" value="0" >\
+                <label for="">\
+                    <input type="radio" name="congthem_'+stt+'" id="" value="tien" checked="checked"> Tiền tổng\
+                </label>\
+                <label for="">\
+                    <input type="radio" name="congthem_'+stt+'" id="" value="phanTram"> Phần trăm\
+                </label>\
+            </td>\
+        </tr>'
+        stt++;
+    }
+    $("#resultString").val(JSON.stringify(result.result))
+    $('#linkOpen').val(result.link[0])
+    $("#tbodyEdit").html(stringTbody)
+}
+
+
+$(document).on('change','input[type="radio"],.inputCongTien',function(){
+    tr = $(this).closest('tr');
+    editMoney(tr)
+})
+
+function editMoney(tr){
+    soLuongCong = tr.find('input.inputCongTien').val();
+    key = tr.find('input.inputCongTien').data("name")
+    loai = tr.find("input[type='radio']:checked").val()
+    spend = tr.find('input.inputCongTien').data('spend')
+    
+    //tinh tien cong
+    tienCong = soLuongCong;
+    if(loai == "phanTram"){
+        tienCong =  (spend*(soLuongCong/100));
+    }
+    tienCong = parseInt(tienCong) +   parseInt(spend);
+    tr.find('.spendAfter').html("("+parseInt(tienCong).toLocaleString()+")")
+
+    console.log(tienCong)
+}
+$('#luuCongTien').on('click',function(){
+    openListDaCong()
+})
+
+
+function openListDaCong(){
+
+    listResult = JSON.parse($('#resultString').val());
+    change  = 0
+
+    $('input.inputCongTien').each(function(){
+        if($(this).val() > 0){
+            change = 1
+            soLuongCong = $(this).val()
+            key = $(this).data("name")
+            loai = $(this).closest("td").find("input[type='radio']:checked").val()
+            spend = listResult[key].spend
+            
+            //tinh tien cong
+            tienCong = soLuongCong;
+            if(loai == "phanTram"){
+                tienCong =  (spend*(soLuongCong/100));
+            }
+            tienCong = parseInt(tienCong) +   parseInt(spend);
+            listResult[key].spend = tienCong
+        }
+    })
+    if(change == 1) {
+        //goi mở tab và chỉnh số lượng
+        chrome.runtime.sendMessage({
+            method:"changeSoLuong",
+            link:$('#linkOpen').val(),
+            data:JSON.stringify(listResult)
+        });
+    }
+}
+
+function openViewButton(status,info){
+    $(".view").attr("disabled","").html("Xem");
+    //show btn 
+    if(status == false ) alert(info)
+    else console.log(info);
+}
+
 $(document).on('click',".view",function(){
     from = $(this).closest('div').find('.datefrom').val();
     end = $(this).closest('div').find('.dateend').val();
@@ -35,7 +146,9 @@ $(document).on('click',".view",function(){
             name:name,
             from:from,
             end:end
-        })
+        });
+        alert("Hệ thống đang chạy!")
+        $(".view").attr('disabled','disabled').html("Loading...");
     }
     
 })
@@ -110,6 +223,7 @@ function getListView(){
                                     <div class="form-group"><label>Từ ngày</label><input class="form-control datefrom" type="date" ></div><div></div>\
                                     <div class="form-group"><label>Đến ngày</label><input class="form-control dateend" type="date" ></div><div></div>\
                                     <button class="btn btn-primary view btnView'+stt+'" data-stt = "'+stt+'" data-name="'+key+'">Xem</button>\
+                                    <button class="btn btn-success congthem d-none" data-name="'+key+'">Cộng thêm</button>\
                                 </div></div>\
                                 </div>\
                             </div>\
@@ -148,17 +262,41 @@ function addList(listDanhSach){
 }
 
 chrome.runtime.onMessage.addListener(function(request , sender, sendResponse) {
+    console.log(request)
     if(request.method == "returnListDanhsach"){
         addList(request.list);
+    }else if(request.method == "unlockView"){
+        resetBtnView()
     }
 });
+showButtonCongThem();
+function resetBtnView(){
+    showButtonCongThem();
+
+    $('button.view').each(function(){
+        $(this).prop("disabled",false).text("Xem")
+    })
+}
 
 function changeDivView(idDiv){
     $('#addNew').addClass('d-none');
     $('#view').addClass('d-none');
     $('#'+idDiv).removeClass('d-none');
 }
-
+function showButtonCongThem(){
+    result = localStorage.getItem("recentResult");
+    if(result !== null){
+        result = JSON.parse(result)
+        name = result.name
+        $('.congthem').each(function(){
+            if($(this).data('name') == name) $(this).removeClass('d-none')
+            else $(this).addClass('d-none')
+        })
+    }
+}
+$(document).on('click','.congthem',function(){
+    $('#exampleModal').modal()
+})
 /**
  * Add
  */

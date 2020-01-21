@@ -88,12 +88,71 @@
                 </div>
             </div>
         </div>
+
+   
+<!-- Modal -->
+<div class="modal fade " id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Cộng tiền vào dự án</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" name="" id="resultString">
+            <input type="hidden" name="" id="linkOpen">
+            <div class="form-group">
+                <label for="">Từ khoá tìm kiếm: </label> <span id="keySearch">abc</span>
+            </div>
+            <div class="form-">
+                <label for="">Ngày: </label> <span id="date">12-12-12 đến 12-21-12</span>
+            </div>
+            <hr>
+            Danh sách chiến dịch
+            <table class="table">
+                <thead>
+                    <tr >
+                        <th >Tên chiến dịch</th>
+                        <th>Số tiền cũ</th>
+                        <th>Phần trăm/ tiền cộng thêm</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyEdit">
+                    <tr>
+                        <td>Nguyễn Văn A</td>
+                        <td>12,9990</td>
+                        <td>
+                            <input type="text" class="form-control inputNhapTien" data-name="">
+                            <label for="">
+                                <input type="radio" name="congthem" id="" value="tien"> Tiền tổng
+                            </label>
+                            <label for="">
+                                <input type="radio" name="congthem" id="" value="phanTram"> Phần trăm
+                            </label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="luuCongTien">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
     </main>
+
 
     <script src="jquery.js"></script>
     <script src="bootstrap4/js/bootstrap.js"></script>
     <script src="backgroundNew.js"></script>
     <script src="backgroundhtml.js"></script>
+
    
 </body>
 </html>
