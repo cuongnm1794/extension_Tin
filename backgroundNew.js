@@ -112,15 +112,15 @@ async function runView(listLink,name,from,end){
                 console.log("rows "+i,rows[i]);
                 let nameCamp = listName.listName[rows[i].dimension_values[headers.dimensions.findIndex(function(element){ return element == "campaign_id" })]].name;
                 let comment = 0;
-                if(typeof rows[i].action_values[0].types.includes("comment") != "undefined") comment = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "comment" })];
+                if(typeof rows[i].action_values[0].types != "undefined" && rows[i].action_values[0].types.includes("comment") ) comment = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "comment" })];
 
                 let spend = rows[i].atomic_values[headers.atomic_columns.findIndex(function(element){ return element.name == "spend" })];
                 
                 let newmessage = 0;
-                if(typeof rows[i].action_values[0].types.includes("onsite_conversion.messaging_first_reply"))  newmessage = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "onsite_conversion.messaging_first_reply" })];
+                if(typeof rows[i].action_values[0].types != "undefined" && rows[i].action_values[0].types.includes("onsite_conversion.messaging_first_reply"))  newmessage = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "onsite_conversion.messaging_first_reply" })];
 
                 let messaging_connect = 0;
-                if(typeof rows[i].action_values[0].types.includes("onsite_conversion.messaging_block"))  messaging_connect = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "onsite_conversion.messaging_block" })];
+                if(typeof rows[i].action_values[0].types != "undefined" && rows[i].action_values[0].types.includes("onsite_conversion.messaging_block"))  messaging_connect = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "onsite_conversion.messaging_block" })];
 
                 let reach = 0;
                 let indexOfReach = headers.atomic_columns.findIndex(function(element){ return element.name == "reach" });
@@ -130,7 +130,7 @@ async function runView(listLink,name,from,end){
 
                 let results = 0;
                 let indexOfResults = headers.result_columns.findIndex(function(element){ return element.name == "results" });
-                if(indexOfResults >=0 && typeof rows[i].result_values[indexOfResults].value != undefined ){
+                if(indexOfResults >=0 && typeof rows[i].result_values[indexOfResults].value != "undefined" ){
                     results =  rows[i].result_values[indexOfResults].value;
                 }
 
