@@ -99,7 +99,7 @@ function openListDaCong(){
     change  = 0
 
     $('input.inputCongTien').each(function(){
-        if($(this).val() > 0){
+        //if($(this).val() > 0){
             change = 1
             soLuongCong = $(this).val()
             key = $(this).data("name")
@@ -113,7 +113,7 @@ function openListDaCong(){
             }
             tienCong = parseInt(tienCong) +   parseInt(spend);
             listResult[key].spend = tienCong
-        }
+        //}
     })
     if(change == 1) {
         //goi mở tab và chỉnh số lượng

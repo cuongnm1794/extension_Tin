@@ -98,12 +98,66 @@ async function runView(listLink,name,from,end){
     for(j =0; j< listLink.length;j++){
         listLink[j] = listLink[j] + "&date="+from+"_"+endNew+"&filter_set=SEARCH_BY_CAMPAIGN_GROUP_NAME-STRING%1ECONTAIN%1E"+nameEncode;
         act = $.urlParam("act",listLink[j]);
-        __business_id = $.urlParam("__business_id",listLink[j]);
+        __business_id = $.urlParam("business_id",listLink[j]);
         try {
             listName = await getInfoLink(listLink[j],name);
           
             getDataSubDetail = await getDataSub(act,listName.accessToken,__business_id,listName.sessionId,listName.stringListId,from,end);
-            getDataSubDetail = getDataSubDetail.data
+            getDataSubDetail = getDataSubDetail.data[0]
+
+            let headers = getDataSubDetail.headers
+            let rows = getDataSubDetail.rows
+            console.log("header",headers);
+            for(i =0; i < rows.length;i++){
+                console.log("rows "+i,rows[i]);
+                let nameCamp = listName.listName[rows[i].dimension_values[headers.dimensions.findIndex(function(element){ return element == "campaign_id" })]].name;
+                let comment = 0;
+                if(typeof rows[i].action_values[0].types.includes("comment") != "undefined") comment = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "comment" })];
+
+                let spend = rows[i].atomic_values[headers.atomic_columns.findIndex(function(element){ return element.name == "spend" })];
+                
+                let newmessage = 0;
+                if(typeof rows[i].action_values[0].types.includes("onsite_conversion.messaging_first_reply"))  newmessage = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "onsite_conversion.messaging_first_reply" })];
+
+                let messaging_connect = 0;
+                if(typeof rows[i].action_values[0].types.includes("onsite_conversion.messaging_block"))  messaging_connect = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "onsite_conversion.messaging_block" })];
+
+                let reach = 0;
+                let indexOfReach = headers.atomic_columns.findIndex(function(element){ return element.name == "reach" });
+                if(indexOfReach >=0){
+                    reach = rows[i].atomic_values[indexOfReach];
+                }
+
+                let results = 0;
+                let indexOfResults = headers.result_columns.findIndex(function(element){ return element.name == "results" });
+                if(indexOfResults >=0 && typeof rows[i].result_values[indexOfResults].value != undefined ){
+                    results =  rows[i].result_values[indexOfResults].value;
+                }
+
+                let impressions = 0;
+                let indexOfimpressions = headers.atomic_columns.findIndex(function(element){ return element.name == "impressions" });
+                if(indexOfimpressions >=0){
+                    impressions = rows[i].atomic_values[indexOfimpressions];
+                }
+
+                let end = rows[i].dimension_values[headers.dimensions.findIndex(function(element){ return element == "date_stop" })];
+
+
+                listReturn[nameCamp] = {};
+                listReturn[nameCamp]["comment"] = comment;
+                listReturn[nameCamp]["spend"] =spend;
+                listReturn[nameCamp]["newmessage"] =newmessage;
+                listReturn[nameCamp]["messaging_connect"] = messaging_connect;
+                listReturn[nameCamp]["reach"] =reach;
+                listReturn[nameCamp]["results"] =results;
+                listReturn[nameCamp]["impressions"] =impressions;
+                listReturn[nameCamp]["end"] =end;
+            }
+            console.log(listReturn);
+            
+
+            
+            /*
             for(i =0; i < getDataSubDetail.length;i++){
                 value = getDataSubDetail[i];
                 nameCamp = listName.listName[getDataSubDetail[i].campaign_id].name;
@@ -132,7 +186,7 @@ async function runView(listLink,name,from,end){
                         if(value["actions"][x]["action_type"] == "onsite_conversion.messaging_block") listReturn[nameCamp]["messaging_connect"] = parseInt(listReturn[nameCamp]["messaging_connect"]) +  parseInt(value["actions"][x]['value'])
                     }
                 }
-            }    
+            } */   
         } catch (error) {
             console.log("runView.error",error)
             
@@ -148,11 +202,11 @@ async function getInfoLink(link,name){
     let promise = new Promise((resolve,reject)=>{
         $.get(link)
         .done( function(data){
-            var accessToken = GetBetween(data,"\"access_token\":\"","\"}]");
+            var accessToken = GetBetween(data,"\"access_token\":\"","\"}");
             var sessionID = GetBetween(data,"sessionID\":\"","\"");
             var listScript = data.split("<script>");
             for(var i =0; i<listScript.length;i++){
-                if(listScript[i].includes("get/v4.0/{") && listScript[i].includes(name)){
+                if(listScript[i].includes("get/v5.0/{") && listScript[i].includes(name)){
                     eval("var nameList = "+GetBetween(listScript[i],"\"yesterday_spent\\\"]}\":","}}]") + "}");
                 }
             }
@@ -184,7 +238,39 @@ async function getInfoLink(link,name){
 
 async function getDataSub(actId,accessToken,business_id,sessionID,stringListId,from,end){
     let promise = new Promise((resolve,reject)=>{
-        var stringUrlGetSoLieu = 'https://graph.facebook.com/v4.0/act_'+actId+'/insights?access_token='+accessToken+'&__activeScenarios=["insightsTable.view","table_insights_footer_dd","table_insights_body_dd"]&__business_id='+business_id+'&_app=ADS_MANAGER&_priority=HIGH&_reqName=adaccount/insights&_reqSrc=AdsPETableDataFetchingPolicy.fetchBody.stats>fetchSync&_sessionID='+sessionID+'&action_attribution_windows=["default"]&time_range=%7B%22since%22%3A%22'+from+'%22%2C%22until%22%3A%22'+end+'%22%7D&fields=["results","objective","reach","impressions","cpm","cost_per_result","actions","spend","campaign_id"]&filtering=[{"field":"campaign.delivery_info","operator":"IN","value":["active","archived","completed","inactive","limited","not_delivering","not_published","pending_review","permanently_deleted","recently_completed","recently_rejected","rejected","scheduled"]},{"field":"campaign.id","operator":"IN","value":['+stringListId+']}]&include_headers=false&level=campaign&limit=5000&locale=en_GB&method=get&pretty=0&suppress_http_code=1&';
+
+        var jsonParam = {
+            "access_token":accessToken,
+            "__activeScenarioIDs":"[]",
+            "__activeScenarios":"[]",
+            "__business_id":business_id,
+            "_app" : "ADS_MANAGER",
+            "_priority" : "HIGH",
+            "_reqName" : "adaccount/am_tabular",
+            "_reqSrc" : "AdsPETableDataFetchingPolicy.fetchBody.stats>fetchSync",
+            "_sessionID": sessionID,
+            "action_attribution_windows": '["default"]',
+            "column_fields": ' ["results","objective","reach","impressions","cpm","cost_per_result","actions","spend","campaign_id"]',
+            "filtering": '[{"field":"campaign.delivery_info","operator":"IN","value":["active","archived","completed","inactive","limited","not_delivering","not_published","pending_review","permanently_deleted","recently_completed","recently_rejected","rejected","scheduled"]},{"field":"campaign.id","operator":"IN","value":['+stringListId+']}]',
+            "include_headers": false,
+            "level": 'campaign',
+            "limit": '5000',
+            "locale": 'en_GB',
+            "method": 'get',
+            "pretty": '0',
+            "suppress_http_code": '1',
+            "time_range": '{"since":"'+from+'","until":"'+end+'"}',
+            "xref": "f3310b4f7446f7"
+        }
+        let stringGet = "";
+        for(let[key,value] of Object.entries(jsonParam)){
+            stringGet += key + "="+encodeURI(value)+"&";
+        }
+      
+       
+
+        var stringUrlGetSoLieu = 'https://graph.facebook.com/v5.0/act_'+actId+'/am_tabular?'+stringGet;
+        console.log("debug 1",stringUrlGetSoLieu);
         $.get(stringUrlGetSoLieu)
         .done(function(data){
             // console.log(data);
