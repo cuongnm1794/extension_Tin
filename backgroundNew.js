@@ -1,7 +1,10 @@
 chrome.runtime.onMessage.addListener(async function(request , sender, sendResponse) {
     if(request.method == "View"){
+        console.log("method view");
         showResult(request)
     }else if(request.method == "openBackground"){
+        console.log("method openBackground");
+
         chrome.tabs.create({url: chrome.extension.getURL('background.html')});
     }else if(request.method == "getUrlTab"){
         let result = await getAllTab();
@@ -11,7 +14,6 @@ chrome.runtime.onMessage.addListener(async function(request , sender, sendRespon
             list:result
         });
     }else if(request.method == "changeSoLuong"){
-        console.log(request)
         console.log(request)
         chrome.tabs.create({url:request.link}, function(tabs){
             idTab = tabs.id
@@ -77,9 +79,7 @@ async function showResult(request){
             let objectSaveLocalStorage = {};
             objectSaveLocalStorage['status'] = false;
             objectSaveLocalStorage['info'] = error;
-
             localStorage.setItem("recentResult",JSON.stringify(objectSaveLocalStorage));
-
             console.log("showResult.error",error);
         }
         
@@ -107,9 +107,8 @@ async function runView(listLink,name,from,end){
 
             let headers = getDataSubDetail.headers
             let rows = getDataSubDetail.rows
-            console.log("header",headers);
             for(i =0; i < rows.length;i++){
-                console.log("rows "+i,rows[i]);
+                let idCamp = rows[i].dimension_values[headers.dimensions.findIndex(function(element){ return element == "campaign_id" })];
                 let nameCamp = listName.listName[rows[i].dimension_values[headers.dimensions.findIndex(function(element){ return element == "campaign_id" })]].name;
                 let comment = 0;
                 if(typeof rows[i].action_values[0].types != "undefined" && rows[i].action_values[0].types.includes("comment") ) comment = rows[i].action_values[0].values[rows[i].action_values[0].types.findIndex(function(element){ return element == "comment" })];
@@ -134,6 +133,10 @@ async function runView(listLink,name,from,end){
                     results =  rows[i].result_values[indexOfResults].value;
                 }
 
+                let typeresult = "";
+                if(indexOfResults >=0 && typeof rows[i].result_values[indexOfResults].indicator != "undefined" ){
+                    typeresult =  rows[i].result_values[indexOfResults].indicator;
+                }
                 let impressions = 0;
                 let indexOfimpressions = headers.atomic_columns.findIndex(function(element){ return element.name == "impressions" });
                 if(indexOfimpressions >=0){
@@ -142,7 +145,7 @@ async function runView(listLink,name,from,end){
 
                 let end = rows[i].dimension_values[headers.dimensions.findIndex(function(element){ return element == "date_stop" })];
 
-
+                let status = await getStatusCamp(listName.accessToken,__business_id,listName.sessionId,idCamp);
                 listReturn[nameCamp] = {};
                 listReturn[nameCamp]["comment"] = comment;
                 listReturn[nameCamp]["spend"] =spend;
@@ -152,41 +155,10 @@ async function runView(listLink,name,from,end){
                 listReturn[nameCamp]["results"] =results;
                 listReturn[nameCamp]["impressions"] =impressions;
                 listReturn[nameCamp]["end"] =end;
+                listReturn[nameCamp]["status"] = status;
+                listReturn[nameCamp]['typeresult'] = typeresult;
+
             }
-            console.log(listReturn);
-            
-
-            
-            /*
-            for(i =0; i < getDataSubDetail.length;i++){
-                value = getDataSubDetail[i];
-                nameCamp = listName.listName[getDataSubDetail[i].campaign_id].name;
-                if(typeof listReturn[nameCamp] === "undefined"){
-                    listReturn[nameCamp] = {};
-                    listReturn[nameCamp]["comment"] = 0;
-                    listReturn[nameCamp]["spend"] =0;
-                    listReturn[nameCamp]["newmessage"] =0;
-                    listReturn[nameCamp]["messaging_connect"] =0;
-                    listReturn[nameCamp]["reach"] =0;
-                    listReturn[nameCamp]["results"] =0;
-                    listReturn[nameCamp]["impressions"] =0;
-                    listReturn[nameCamp]["end"] ="";
-                }
-                
-                listReturn[nameCamp]["spend"] = parseInt(listReturn[nameCamp]["spend"]) + parseInt(value['spend']);
-                listReturn[nameCamp]["impressions"] = parseInt(listReturn[nameCamp]["impressions"]) + parseInt(value['impressions']);
-                listReturn[nameCamp]["reach"] = parseInt(listReturn[nameCamp]["reach"]) + parseInt(value['reach']);
-                listReturn[nameCamp]['end'] = (typeof end !=="undefined")?end:0;
-                if(typeof value['results'][0]['values'] != "undefined") listReturn[nameCamp]["results"] = parseInt(listReturn[nameCamp]["results"]) + parseInt(value['results'][0]['values'][0]['value'])
-
-                if(typeof value['actions'] !== "undefined" ){
-                    for(x =0;x<value['actions'].length;x++){
-                        if(value["actions"][x]["action_type"] == "comment") listReturn[nameCamp]["comment"] = parseInt(listReturn[nameCamp]["comment"]) +  parseInt(value["actions"][x]['value'])
-                        if(value["actions"][x]["action_type"] == "onsite_conversion.messaging_first_reply") listReturn[nameCamp]["newmessage"] = parseInt(listReturn[nameCamp]["newmessage"]) +  parseInt(value["actions"][x]['value'])
-                        if(value["actions"][x]["action_type"] == "onsite_conversion.messaging_block") listReturn[nameCamp]["messaging_connect"] = parseInt(listReturn[nameCamp]["messaging_connect"]) +  parseInt(value["actions"][x]['value'])
-                    }
-                }
-            } */   
         } catch (error) {
             console.log("runView.error",error)
             
@@ -196,9 +168,45 @@ async function runView(listLink,name,from,end){
 }
 
 
+async function getStatusCamp(accessToken,business_id,sessionID,idCamp){
+    let promise = new Promise((resolve,reject)=>{
+        var jsonParam = {
+            "access_token":accessToken,
+            "__activeScenarioIDs":'["f27d667be7d939c_1588574904203.65"]',
+            "__activeScenarios":'["table_insights_footer_dd"]',
+            "__business_id":business_id,
+            "_app":"ADS_MANAGER",
+            "_priority":"HIGH",
+            "_reqName":'objects":"ynamic_campaign_group',
+            "_reqSrc":"AdsDynamicAdObjectDataManager",
+            "_sessionID":sessionID,
+            "am_call_tags":'{"data_manager":"AdsDynamicAdObjectDataManager"}',
+            "fields":'["delivery_status{extra_data,status,substatuses}"]',
+            "ids":idCamp,
+            "include_headers":"false",
+            "locale":"en_GB",
+            "method":"get",
+            "pretty":"0",
+            "suppress_http_code":"1",
+            "xref":"f10fa5b74e95f4c",
+        }
+        let stringGet = "";
+        for(let[key,value] of Object.entries(jsonParam)){
+            stringGet += key + "="+encodeURI(value)+"&";
+        }
+        var stringUrlGetSoLieu = 'https://graph.facebook.com/v5.0/?'+stringGet;
+        $.get(stringUrlGetSoLieu)
+        .done(function(data){
+            let status = data[idCamp].delivery_status
+            resolve(status)
+        });
+    })
+    let result = await promise;
+    return result;
+
+}
+
 async function getInfoLink(link,name){
-    console.log("backgroundNew.getInfoLink... name: "+name)
-    console.log("backgroundNew.getInfoLink... link: "+link)
     let promise = new Promise((resolve,reject)=>{
         $.get(link)
         .done( function(data){
@@ -233,8 +241,6 @@ async function getInfoLink(link,name){
     let result = await promise;
     return result
 }
-
-
 
 async function getDataSub(actId,accessToken,business_id,sessionID,stringListId,from,end){
     let promise = new Promise((resolve,reject)=>{
@@ -273,7 +279,6 @@ async function getDataSub(actId,accessToken,business_id,sessionID,stringListId,f
         console.log("debug 1",stringUrlGetSoLieu);
         $.get(stringUrlGetSoLieu)
         .done(function(data){
-            // console.log(data);
             resolve(data)
         });
     })
