@@ -163,6 +163,30 @@ $(document).on('click','.deleteGroup',function(){
         getListView()
     }
 })
+$(document).on('click','.btnToday',function(){
+    var now = new Date();
+
+    var day = ("0" + now.getDate()).slice(-2);
+    var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+    var today = now.getFullYear()+"-"+(month)+"-"+(day) ;
+    $(this).closest(".card").find('.datefrom').val(today)
+    $(this).closest(".card").find('.dateend').val(today)
+
+})
+
+$(document).on('click',".btnYesterday",function(){
+
+    var now = new Date();
+    now.setDate(now.getDate() - 1);
+    var day = ("0" + now.getDate()).slice(-2);
+    var month = ("0" + (now.getMonth() + 1)).slice(-2);
+
+    var yesterday = now.getFullYear()+"-"+(month)+"-"+(day) ;
+    $(this).closest(".card").find('.datefrom').val(yesterday)
+    $(this).closest(".card").find('.dateend').val(yesterday)
+})
+
 $(document).on('click','.editGroup',function(){
     $('#listGroupCurrent').html("");
 
@@ -222,6 +246,7 @@ function getListView(){
                                 <div class="card"><div class="card-header text-white bg-success">Xem theo ngày</div><div class="card-body">\
                                     <div class="form-group"><label>Từ ngày</label><input class="form-control datefrom" type="date" ></div><div></div>\
                                     <div class="form-group"><label>Đến ngày</label><input class="form-control dateend" type="date" ></div><div></div>\
+                                    <div class="row"><div class="col-6"><button class="btn btn-info btnYesterday">Yesterday</button></div><div class="col-6"><button class="btn btn-info btnToday">Today</button></div></div><br>\
                                     <button class="btn btn-primary view btnView'+stt+'" data-stt = "'+stt+'" data-name="'+key+'">Xem</button>\
                                     <button class="btn btn-success congthem d-none" data-name="'+key+'">Cộng thêm</button>\
                                 </div></div>\
