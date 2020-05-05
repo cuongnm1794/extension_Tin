@@ -46,6 +46,7 @@ async function getAllTab(){
 }
 
 async function showResult(request){
+    console.log("debug.showResult");
     let listUrl = localStorage.getItem("listKey");
     listUrl = listKey[request.name]
     if(listUrl){
@@ -83,6 +84,9 @@ async function showResult(request){
             console.log("showResult.error",error);
         }
         
+    }else{
+        console.log("error listUrl");
+
     }
 
 
@@ -218,7 +222,7 @@ async function getInfoLink(link,name){
                     eval("var nameList = "+GetBetween(listScript[i],"\"yesterday_spent\\\"]}\":","}}]") + "}");
                 }
             }
-           if(typeof nameList == "undefined") reject("Không lấy được dữ liệu!")
+           if(typeof nameList === undefined) reject("Không lấy được dữ liệu!")
            for (const [key,value] of Object.entries(nameList)){
                 if(!key.match(/^[0-9]+$/)) {delete nameList[key];continue;}
                 nameList[key] = {
