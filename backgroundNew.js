@@ -47,8 +47,9 @@ async function getAllTab(){
 
 async function showResult(request){
     console.log("debug.showResult");
-    let listUrl = localStorage.getItem("listKey");
-    listUrl = listKey[request.name]
+    let listUrlx = localStorage["listKey"];
+    listUrlx = JSON.parse(listUrlx)
+    listUrl = listUrlx[request.name]
     if(listUrl){
         try {
             let result = await runView(listUrl,request.name,request.from,request.end)
@@ -85,7 +86,10 @@ async function showResult(request){
         }
         
     }else{
-        console.log("error listUrl");
+        console.log("error listUrl",listUrlx);
+        console.log("error listUrl type oof",typeof listUrlx);
+
+        console.log("error listUrl require name",        request.name        );
 
     }
 

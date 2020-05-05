@@ -57,7 +57,7 @@ function chendulieu(i,name,result,reach,Impression,comment,newmassage,messaging_
     /**
      * Status
      */
-    let statusShow = '<div><div class="clearfix _ikh"><div class="ellipsis _4bl9"><div class="clearfix _ikh"><div class="_4bl7"><div class="_8l2q"><i alt="" class="img sp_A5UY8Z2KyNy sx_916c52"></i></div></div><div class="_4bl9"><span class="">Active</span></div></div></div></div></div>';
+    let statusShow = '<div><div class="clearfix _ikh"><div class="ellipsis _4bl9"><div class="clearfix _ikh"><div class="_4bl7"><div class="_8l2q"><i alt="" class="img sp_WvWuyGdBiuN sx_e4a7eb"></i></div></div><div class="_4bl9"><span class="">Active</span></div></div></div></div></div>';
     let onoffstatuus = '<div data-tooltip-position="below" value="true" class="_128j _128k _128n"><div aria-checked="true" class="_128o" role="switch" tabindex="0"><div class="_128p"></div></div></div>';
     if(status.status == "off"){
         onoffstatuus = '<div data-tooltip-position="below" value="false" class="_128j _128l _128n"><div aria-checked="true" class="_128o" role="switch" tabindex="0"><div class="_128p"></div></div></div>';
@@ -70,10 +70,10 @@ function chendulieu(i,name,result,reach,Impression,comment,newmassage,messaging_
         }
 
     } else if(status.status == "active"){
-        statusShow = '<div><div class="clearfix _ikh"><div class="ellipsis _4bl9"><div class="clearfix _ikh"><div class="_4bl7"><div class="_8l2q"><i alt="" class="img sp_A5UY8Z2KyNy sx_916c52"></i></div></div><div class="_4bl9"><span class="">Active</span></div></div></div></div></div>';
+        statusShow = '<div><div class="clearfix _ikh"><div class="ellipsis _4bl9"><div class="clearfix _ikh"><div class="_4bl7"><div class="_8l2q"><i alt="" class="img sp_WvWuyGdBiuN sx_e4a7eb"></i></div></div><div class="_4bl9"><span class="">Active</span></div></div></div></div></div>';
     } else if(status.status == "error"){
         if(status.substatuses[0] == "all_ad_sets_in_error"){
-            statusShow = '<div><div class="clearfix _ikh"><div class="ellipsis _4bl9"><span><span><div class="clearfix _ikh"><div class="_4bl7"><div class="_8l2q"><i alt="" class="img sp_A5UY8Z2KyNy sx_f2fea3"></i></div></div><div class="_4bl9"><span class="">Ad set error(s)</span></div></div></span></span></div></div></div>';
+            statusShow = '<div><div class="clearfix _ikh"><div class="ellipsis _4bl9"><span><span><div class="clearfix _ikh"><div class="_4bl7"><div class="_8l2q"><i alt="" class="img sp_WvWuyGdBiuN sx_ba915a"></i></div></div><div class="_4bl9"><span class="">Ad set error(s)</span></div></div></span></span></div></div></div>';
         }
     }
 
